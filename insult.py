@@ -1,21 +1,21 @@
 import random
 
 """
-This file will contain all insult logic for ChaseBot.
+This file will contain all insult logic for DIS.
 Ideally, the insults will be generated with minimal configuration and parameters,
 so the API implementation can easily get an insult.
 
 Insults will be generated as so:
 
-Chase Is A + [Start Word] + ([Chain Word] + [Flat Word]) * n - 1
+[START] + [FLAT WORD] + ([Chain Word] + [Flat Word]) * n - 1
 
 Chain word = Word that "chains" statements together - and, is, ect.
 Flat word = Statement that is the brunt of the insult - bad, trash, terrible, ect.
 Start Word = Word that can effectively start off the sequence.
 n = Number which specifies how many "chains" the insult will have.
 
-Chase is a bad - 1 chain
-Chase is a bad and trash - 2 chains
+Chase is bad - 1 chain
+Chase is bad and trash - 2 chains
 
 Pros:
 
