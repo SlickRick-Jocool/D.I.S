@@ -1,0 +1,112 @@
+# DIS Insult configuration file.
+# '#' are ignored if used at the start of the line, and can be used as comments.
+# Blank lines are also ignored.
+# You may add insults under the following sections, one insult per line.
+
+------FLAT WORDS:------
+fetish[ist[<(foot),],ist]
+fail[ure,ed abortion]
+!fuck[er,]
+brick
+trash
+!crap
+terrible
+!shit
+!dick
+!ass[<(jack),<(head)hole,]
+bastard!
+bugger
+rubbish
+bitch!
+sucker
+Retard[ed,]
+Braintard[ed,]
+^Jocool
+Slick rick
+Egg
+Dung splattered choberplatz
+Maggot pie
+^Daworir/reek
+Slimo
+Hoochie
+Succubus
+mother fucker!
+^Jar-^Jar
+Lame
+Dummy head
+Smelly
+^Troglodyte
+^Homo-^Erectus
+Cool guy
+Incel
+^Quinge
+Tweaker
+Lobotomite
+Midget
+^Hot-^topic
+Cognitavely incapacitated
+Hemoroid
+STI
+Mistake
+Rock
+Cool guy
+Furry
+Zygote
+Half-Brain
+Weeaboo
+^John M.
+Procaryote
+Condom
+^Blobfish
+^Coelacanth
+!^Hitler
+^Confederate
+Inbred
+!Nose fucking
+^Jake ^pauler
+^Loganger
+Protruding forehead
+penis[<(micro),<(inverted ),]
+Basic
+Cancerous
+Malignant
+Sad
+Pathetic
+Brainless
+Derelict
+^Sha’ ^Gi
+Long necked
+Greasy
+Slimy
+Pig
+Fat
+Morbidly obese
+^Morgz ^mum
+12 year old
+Edgelord
+Chicken choker
+^Fortniter
+Neckbeard
+Ignoramus
+------END SECTION:------
+
+------CHAIN WORDS:------
+and a
+fucking!
+shitting!
+fricking
+damning!
+trashing
+bitching!
+tweaking
+Inbreeding
+Ear licking
+ASMR sounding
+looking
+Mangina having
+^Elmo looking
+Big mouth having
+Destiny 2 playing
+Bleach drinking
+1 iq having
+------END SECTION:------

@@ -14,7 +14,6 @@ They will support commenting, insult notation, sections, and even config options
 Content *MUST* be restricted to one line. Comments can be multi-lined, but they will have to append a
 comment character(Customisable, but most likely '#')
 
-
 --== DIS Insult Notation: ==--
 
 DIS Insult Notation allows for easy formatting of insults, so the user dosen't have to repeat themselves.
@@ -43,19 +42,19 @@ class InsultParser:
     You can see more information about it above.
     """
 
-    def __init__(self, path):
+    def __init__(self):
 
-        self.path = path  # Path to insult file
         self.comment = '#'  # Comment character, denotes text we don't care about
         self.reader = None  # File object we use for reading.
-        self.start_flat = '------FLAT WORDS:------'  # Header for flat words
-        self.start_chain = '------CHAIN WORDS:------'  # Header for chain words
-        self.stop = '------END SECTION:------'  # Header for end section
+        self.start_flat = '------flat words:------'  # Header for flat words
+        self.start_chain = '------chain words:------'  # Header for chain words
+        self.stop = '------end section:------'  # Header for end section
 
-    def parse(self):
+    def parse(self, path):
 
         """
         Parses over the insults and returns a dictionary mapping chainwords and flatwords.
+        :param path: Path to insult file
         :return: Dictionary wor words.
         """
 
@@ -65,7 +64,7 @@ class InsultParser:
         chain = []
         selected = None
 
-        with open(self.path, mode='r') as self.reader:
+        with open(path, mode='r') as self.reader:
 
             # We now iterate over the text:
 
@@ -76,7 +75,6 @@ class InsultParser:
                 line = line.rstrip("\n")
                 line = line.replace("\n", '')
                 line = line.lower()
-
 
                 if line == '' or line[0] == self.comment:
 
@@ -207,9 +205,6 @@ class InsultParser:
 
             # Add split text to final:
 
-            print(split)
-            print(text)
-
             done = list(text[:start] + x + text[stop+1:] for x in split)
             final = []
 
@@ -222,8 +217,6 @@ class InsultParser:
         elif start != -1 and text[start-1] == ';':
 
             # Get expansion for the rest of the text:
-
-            print(text[start+1:])
 
             new = self._statement_expand(text[start+1:])
             final = []
