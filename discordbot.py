@@ -18,7 +18,7 @@ insult_gen = InsultGen()
 
 # Discord Token:
 
-TOKEN = 'NzI1NzU5NzgwMzQ1MzQ4MTY3.XvTb6w.-ony43X0J6x_MIG0XMvs0CyhO4I'
+TOKEN = 'TOKEN'
 
 # Role we are looking for:
 
