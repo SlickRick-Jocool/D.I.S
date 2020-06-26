@@ -70,7 +70,7 @@ class InsultParser:
 
             for line in self.reader:
 
-                # Checking if first character is our comment character
+                # Removing newlines and other junk
 
                 line = line.rstrip("\n")
                 line = line.replace("\n", '')

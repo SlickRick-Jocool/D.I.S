@@ -54,6 +54,16 @@ class InsultGen:
 
         self.parse()
 
+    def clear(self):
+
+        """
+        Cleared the internal collection of inputs
+        :return:
+        """
+
+        self.insults = {'flat': [], 'chain': []}
+        self.safe_insult = {'flat': [], 'chain': []}
+
     def parse(self, path=None):
 
         """
@@ -64,11 +74,29 @@ class InsultGen:
         :return:
         """
 
+        # Clearing internal values:
+
+        self.insults = {'flat': [], 'chain': []}
+        self.safe_insult = {'flat': [], 'chain': []}
+
         # Getting insult list:
 
         raw = self.parser.parse((path if path is not None else self.config))
 
-        # Iterating over raw insult flat list and sorting accordingly:
+        # Parsing over the dictionary and adding relevant words:
+
+        self._parse_dict(raw)
+
+    def _parse_dict(self, raw, remove=False):
+
+        """
+        Parses a specified dictionary and adds the words as they are found.
+        :param raw: Dictionary to parse.
+        :param remove: Value determining if we should remove words
+        :return:
+        """
+
+        # Iterating over RAW insult list and sorting accordingly:
 
         for thing in ['flat', 'chain']:
 
@@ -76,11 +104,102 @@ class InsultGen:
 
             for word in raw[thing]:
 
-                # Add word to the collection
+                if not remove:
 
-                self.add_word(word[0], thing, word[1])
+                    # Add word to collection:
 
-    def add_word(self, text, word_type, vulgar=False):
+                    self._add_word(word[0], thing, word[1])
+
+                    continue
+
+                else:
+
+                    self._remove_word(word[0], thing, word[1])
+
+    def check_word(self, word, word_type):
+
+        """
+        Checks if a word is in the collection
+        :param word: Word to check
+        :param word_type: Type of word to check
+        :return:
+        """
+
+        # Check if word is in the master list:
+
+        insult = word in self.insults[word_type]
+
+        # Check if word is in safe list:
+
+        safe = word in self.safe_insult[word_type]
+
+        return insult, safe
+
+    def add_words(self, words, word_type):
+
+        """
+        Allows for the addition of one or more words.
+        Sends the words through the DIS notation parser.
+        :param words: Words to add, can be string or list.
+        :param word_type: Type of words
+        :return:
+        """
+
+        out = {'chain': [], 'flat': []}
+
+        if type(words) == str:
+
+            # Convert into a list:
+
+            words = [words]
+
+        # Working with a list, handel it as such:
+
+        for word in words:
+
+            # Send the word through the parser:
+
+            out[word_type] = out[word_type] + self.parser.notation_parse(word)
+
+        # Parse raw words and add them to dictionary:
+
+        self._parse_dict(out)
+
+        return out
+
+    def remove_words(self, words, word_type):
+
+        """
+        Allows for the removal of one or more words.
+        Sends the words through the DIS notation parser.
+        :param words: Words to add, can be string or list
+        :param word_type: Type of words to add
+        :return:
+        """
+
+        out = {'chain': [], 'flat': []}
+
+        if type(words) == str:
+
+            # Convert into list:
+
+            words = [words]
+
+        # Working with a list:
+
+        for word in words:
+
+            # Send word through the parser
+
+            out[word_type] = out[word_type] + self.parser.notation_parse(word)
+
+        # Parse raw words and remove them from the dictionary
+
+        self._parse_dict(out, remove=True)
+
+        return out
+
+    def _add_word(self, text, word_type, vulgar=False):
 
         """
         Adds a word(Or a statement) to the internal collection.
@@ -95,13 +214,25 @@ class InsultGen:
 
             # Word is not vulgar, add it to the safe words:
 
+            if text in self.safe_insult[word_type]:
+
+                # Already have to word registered, do nothing.
+
+                return
+
             self.safe_insult[word_type].append(text)
+
+        if text in self.insults[word_type]:
+
+            # Already have word registered, do nothing
+
+            return
 
         # Add the word to the insult collection:
 
         self.insults[word_type].append(text)
 
-    def remove_word(self, text, word_type, safe=True):
+    def _remove_word(self, text, word_type, safe=True):
 
         """
         Removes a word from the internal collection.
@@ -125,7 +256,15 @@ class InsultGen:
 
             # Attempt to remove form the safe word list:
 
-            self.safe_insult[word_type].remove(text)
+            try:
+
+                self.safe_insult[word_type].remove(text)
+
+            except Exception:
+
+                # Word not in safe list, move on
+
+                pass
 
     def gen_insult(self, num, start=None, vulgar=False):
 
@@ -140,6 +279,12 @@ class InsultGen:
         """
 
         collec = (self.insults if vulgar else self.safe_insult)
+
+        if collec == {'flat': [], 'chain': []}:
+
+            # Empty wordlist, return false
+
+            return False
 
         # Getting start of the argument:
 
