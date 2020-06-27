@@ -18,11 +18,31 @@ insult_gen = InsultGen()
 
 # Discord Token:
 
-TOKEN = 'TOKEN'
+TOKEN = "TOKEN_HERE"
 
 # Role we are looking for:
 
 ADMIN = 'Slick-Rick'
+
+
+async def perm_check(ctx):
+
+    """
+    Checks to see if the issuer has the ADMIN role defined above,
+    of if the issuer is the owner of this bot.
+    :param ctx: Context provided.
+    :return:
+    """
+
+    if ADMIN in ctx.message.author.roles or await bot.is_owner(ctx.message.author):
+
+        # We have the permissions, continue:
+
+        return True
+
+    # We don't have the permissions, raise an error:
+
+    raise commands.errors.CheckFailure
 
 
 class WordlistCommands(commands.Cog, name='Wordlist Commands', ):
@@ -38,7 +58,7 @@ class WordlistCommands(commands.Cog, name='Wordlist Commands', ):
     @commands.command(name='add', help="Adds one or more words to the wordlist, "
                       "'/' separated without spaces. User must specify weather it is a "
                       "flat word or a chain word. Supports DIS insult notation.", pass_contex=True)
-    @commands.has_role(ADMIN)
+    @commands.check(perm_check)
     async def add(self, ctx, word_type: str, text: str):
 
         """
@@ -74,7 +94,7 @@ class WordlistCommands(commands.Cog, name='Wordlist Commands', ):
                       "'/' separated without spaces. "
                       "User must specify weather it is a flat word or a chain word. "
                       "Supports DIS insult notation.")
-    @commands.has_role(ADMIN)
+    @commands.check(perm_check)
     async def remove(self, ctx, word_type: str, text: str):
 
         """
@@ -98,9 +118,17 @@ class WordlistCommands(commands.Cog, name='Wordlist Commands', ):
 
         words = text.split('/')
 
-        # Adding words to the collection:
+        # Removing words from the collection:
 
-        done = insult_gen.remove_words(words, word_type)
+        try:
+
+            done = insult_gen.remove_words(words, word_type)
+
+        except Exception:
+
+            await ctx.send("Unable to remove word [{}] from category [{}]!".format(text, word_type))
+
+            return
 
         await ctx.send("Removed words from category [{}]:".format(word_type))
 
@@ -108,6 +136,7 @@ class WordlistCommands(commands.Cog, name='Wordlist Commands', ):
             await ctx.send("  > {}".format(i[0]))
 
     @commands.command(name='reload', help='Reloads the insult wordlist.')
+    @commands.check(perm_check)
     async def reload(self, ctx):
 
         """
@@ -123,7 +152,7 @@ class WordlistCommands(commands.Cog, name='Wordlist Commands', ):
         await ctx.send("Reloaded insult wordlist!")
 
     @commands.command(name='clear', help="Clears all words from the collection.")
-    @commands.has_role(ADMIN)
+    @commands.check(perm_check)
     async def clear(self, ctx):
 
         """
@@ -258,7 +287,7 @@ class VulgarCommands(commands.Cog, name='Vulgar Commands'):
         self.vulgar = True  # Weather we should use vulgarity
 
     @commands.command(name='enable', help='Enables vulgarity')
-    @commands.has_role(ADMIN)
+    @commands.check(perm_check)
     async def enable(self, ctx):
 
         """
@@ -281,7 +310,7 @@ class VulgarCommands(commands.Cog, name='Vulgar Commands'):
         await ctx.send("Vulgarity Enabled!")
 
     @commands.command(name='disable', help='Disables vulgarity')
-    @commands.has_role(ADMIN)
+    @commands.check(perm_check)
     async def disable(self, ctx):
 
         """
@@ -311,6 +340,95 @@ class VulgarCommands(commands.Cog, name='Vulgar Commands'):
         await ctx.send("Vulgarity is: [{}]".format("Enabled" if self.vulgar else "Disabled"))
 
 
+class NotationCommands(commands.Cog, name='Notation Commands'):
+
+    """
+    A cog that supplied tools for seeing how DIS will interpret your notation
+    """
+
+    def __init__(self, bot_inst):
+
+        self.bot = bot_inst  # Bot instance
+
+    @commands.command(name='ninfo', help='Displays info on DIS insult notation.')
+    async def ninfo(self, ctx):
+
+        """
+        Displays some info on DIS insult notation.
+        :param ctx: Context provided
+        :return:
+        """
+
+        await ctx.send('''```    --== DIS Insult Notation: ==--
+
+DIS Insult Notation allows for easy formatting of insults, so the user doesn't have to repeat themselves.
+
+; - Escape character, tells DIS to ignore the next character.
+! - Tell DIS that this insult is vulgar.
+() - Specify a section of text. This section will be interpreted by DIS as one character.
+(End parenthesis will be ignored if their are no start parenthesis).
+
+[] - Gives DIS alternate options for the insult(ie. Dumb[er,] will resolve as 'Dumb' and 'Dumber').
+(End bracket will be ignored if their is no start bracket).
+(Each value should be comma separated).
+(A zero-length string, often after the last character, will resolve as the original text, as seen above.)
+
+^ - Specify the next character or section should be uppercase(DIS interpreters all characters as lowercase).
+< - Render character or section after at the start of the line.
+> - Render character or section after at the end of the line.
+*n - Repeat the next character or section a specified number of times.
+
+These characters may be located anywhere in the text, and may be escaped by the ';' character
+
+Example:
+
+Input: [<(START),>(END)]||||||||||||||||||[<(END),>(START)]
+
+Output: 
+
+endtstart||||||||||||||||||
+start||||||||||||||||||start
+end||||||||||||||||||end
+||||||||||||||||||endstart```''')
+
+    @commands.command(name='parse', help='Parses DIS text, and outputs the result.')
+    async def parse(self, ctx, *args):
+
+        """
+        We parse text through the insult notation parser, and output it.
+        We show at max 10 values, si people can't spam.
+        :param ctx: Context provided
+        :return:
+        """
+
+        # Getting all text:
+
+        thing = ' '.join(args)
+
+        # Sending text through the parser:
+
+        parsed = insult_gen.parser.notation_parse(thing)
+
+        final = "--== Parser Output: ==--\nDisplaying first 10 values.\nShowing {}/{} values:".format(
+            10 if len(parsed) >= 10 else len(parsed), len(parsed))
+
+        for num, val in enumerate(parsed):
+
+            # Add the text to the final string:
+
+            final = final + '\n[{}]:'.format(num+1) + val[0]
+
+            # Check if we are done:
+
+            if num == 9:
+
+                break
+
+        # Sending final string:
+
+        await ctx.send('```' + final + '```')
+
+
 @bot.event
 async def on_ready():
 
@@ -338,7 +456,24 @@ async def on_command_error(ctx, error):
     elif isinstance(error, commands.errors.BadArgument):
 
         await ctx.send("You supplied a bad argument.")
-        await ctx.send("Don't @ 'everyone' or 'here', as that is very annoying.")
+
+        if error.__str__() in ['Member "@​everyone" not found', 'Member "@​here" not found']:
+
+            await ctx.send("Don't @ mention everyone or here, as that is very annoying.")
+
+        await ctx.send("Try '>dis help [command]' to get info on the required arguments.")
+
+    elif isinstance(error, commands.errors.InvalidEndOfQuotedStringError):
+
+        await ctx.send("Seems you messed up your quoting. Be sure that your closing quotation has a space after it.")
+
+    elif isinstance(error, commands.errors.ExpectedClosingQuoteError):
+
+        await ctx.send("Seems you messed up your quoting. Be sure that your quote has a closing quotation.")
+
+    elif isinstance(error, commands.errors.CommandNotFound):
+
+        await ctx.send("You supplied an unknown command. Try '>dis help [command]'.")
 
     else:
 
@@ -405,4 +540,5 @@ async def exc_raise(ctx):
 
 bot.add_cog(VulgarCommands(bot))
 bot.add_cog(WordlistCommands(bot))
+bot.add_cog(NotationCommands(bot))
 bot.run(TOKEN)

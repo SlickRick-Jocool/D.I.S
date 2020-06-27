@@ -238,6 +238,8 @@ class InsultParser:
         :return: Formatted text in a list
         """
 
+        text = text.lower()
+
         # We first expand the text:
 
         exp = self._statement_expand(text)
