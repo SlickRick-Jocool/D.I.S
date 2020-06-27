@@ -2,6 +2,7 @@ from insult import InsultGen
 import discord
 from discord.ext import commands
 from math import ceil
+import re
 
 """
 This file will communicate with discord, 
@@ -18,7 +19,7 @@ insult_gen = InsultGen()
 
 # Discord Token:
 
-TOKEN = "TOKEN_HERE"
+TOKEN = "TOKE_HERE"
 
 # Role we are looking for:
 
@@ -175,50 +176,65 @@ class WordlistCommands(commands.Cog, name='Wordlist Commands', ):
 
         await ctx.send("Cleared insult collection!")
 
-    @commands.command(pass_context=True, name='find', help='Checks if the word is in either wordlist.')
+    @commands.command(pass_context=True, name='find', help='Uses regular expressions,'
+                                                           ' reports the number of matches '
+                                                           'the pattern had for each wordlist.')
     async def find(self, ctx, text: str):
 
         """
         Checks if the word is in either wordlist.
+        Utilises regular expressions to search.
         :param ctx: Context supplied
         :param text: Word to check
         :return:
         """
 
-        # Checking if the word is in chain words:
+        total = 0
 
-        chain, chain_safe = insult_gen.check_word(text, 'chain')
+        final = "--== Word Information: ==--" \
+                "\nPattern: {}\nTotal Occurrences: {}\n".format(text, '{}')
 
-        # Checking if word is in flat words:
+        for thing in ['chain', 'flat']:
 
-        flat, flat_safe = insult_gen.check_word(text, 'flat')
+            result = insult_gen.find_word(text, thing)
 
-        final = "--== Word Information: ==--\nWord: {}\n".format(text)
+            final = final + "\n  > Pattern occurs in [{}] wordlist {} times.".format(thing, len(result))
 
-        if chain:
-            final = final + "\n  > Word is present in 'chain' wordlist, and {} vulgar.".format("is not" if chain_safe
-                                                                                               else "is")
+            total = total + len(result)
 
-        if flat:
-            final = final + "\n  > Word is present in 'flat' wordlist, and {} vulgar.".format("is not" if flat_safe
-                                                                                              else "is")
+        final = final + "\n\nUse '>dis list [wordlist] [page number] {}' to see the matched values.".format(text)
 
-        if not flat and not chain:
-            final = final + "\n   > Word is not present in any wordlist."
+        await ctx.send("```" + final.format(total) + "```")
 
-        await ctx.send("```" + final + "```")
-
-    @commands.command(name='list', help='Lists words in wordlist.')
-    async def list(self, ctx, wordlist: str, page=1):
+    @commands.command(name='list', help='Lists words in wordlist. Can optionally '
+                                        'specify a regular expression to match.')
+    async def list(self, ctx, wordlist: str, page=None, regex=r'\w'):
 
         """
         Displays words in the wordlist.
         User can specify pages to view, max 10 per page.
+        User can optionally specify a regular expression to use.
         :param ctx: Context specified
         :param wordlist: Wordlist to list
         :param page: Page to render
+        :param regex: Regular expression to use
         :return:
         """
+
+        # Resolving arguments:
+
+        if page is None:
+
+            page = 1
+
+        elif page.isdigit():
+
+            page = int(page)
+
+        elif type(page) == str:
+
+            regex = page
+            page = 1
 
         if wordlist not in ['chain', 'flat']:
 
@@ -235,35 +251,34 @@ class WordlistCommands(commands.Cog, name='Wordlist Commands', ):
 
             return
 
-        if len(insult_gen.insults[wordlist]) <= (page - 1) * 10:
+        # Getting list of relevant words:
+
+        words_full = insult_gen.find_word(regex, wordlist)
+
+        if len(words_full) <= (page - 1) * 10:
             # Page number is too big!
 
             await ctx.send("```Page number is too big! Max page number: {}```".format(ceil(len(
-                insult_gen.insults[wordlist]) / 10)))
+                words_full) / 10)))
 
             return
 
         # Getting list of insults:
 
-        words = insult_gen.insults[wordlist][((page - 1) * 10): (page * 10)]
+        words = words_full[((page - 1) * 10): (page * 10)]
 
         # Displaying them:
 
         final = "--== Insult List: ==--\nA '!' denotes that the word is vulgar.\nWord List: [{}]\nPage: {}/{}\n".format(
-            wordlist, page, ceil(len(insult_gen.insults[wordlist]) / 10))
+            wordlist, page, ceil(len(words_full) / 10))
 
         for num, word in enumerate(words):
 
-            # Find out if it is in the safewords:
+            # Add word to final string
 
-            end = '[!]'
+            print(word)
 
-            if word in insult_gen.safe_insult[wordlist]:
-                # Word is in wordlist:
-
-                end = ''
-
-            final = final + '\n[{}]: {} {}'.format(num + ((page - 1) * 10) + 1, word, end)
+            final = final + '\n[{}]: {} {}'.format(num + ((page - 1) * 10) + 1, word[0], '' if word[1] else '[!]')
 
         await ctx.send("```" + final + "```")
 
@@ -406,7 +421,7 @@ end||||||||||||||||||end
 
         """
         We parse text through the insult notation parser, and output it.
-        We show at max 10 values, si people can't spam.
+        We show at max 10 values, so people can't spam.
         :param ctx: Context provided
         :return:
         """
@@ -536,7 +551,7 @@ async def insult(ctx, user: discord.Member, chain=3):
 
 
 @bot.command(name='raise', hidden=True)
-@commands.has_role(ADMIN)
+@commands.check(perm_check)
 async def exc_raise(ctx):
 
     """

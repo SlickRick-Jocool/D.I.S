@@ -1,5 +1,6 @@
 import random
 from fileutils import InsultParser
+import re
 
 """
 This file will contain all insult logic for DIS.
@@ -116,24 +117,29 @@ class InsultGen:
 
                     self._remove_word(word[0], thing, word[1])
 
-    def check_word(self, word, word_type):
+    def find_word(self, pattern, word_type):
 
         """
-        Checks if a word is in the collection
-        :param word: Word to check
+        Checks if a word(s) is in the collection.
+        Uses regular expressions to search.
+        :param pattern: Regular expression to check
         :param word_type: Type of word to check
         :return:
         """
 
-        # Check if word is in the master list:
+        final = []
 
-        insult = word in self.insults[word_type]
+        # Check if word is in main insult list:
 
-        # Check if word is in safe list:
+        for word in self.insults[word_type]:
 
-        safe = word in self.safe_insult[word_type]
+            if re.search(pattern, word):
 
-        return insult, safe
+                # Word is valid, add it to the list, and check vulgarity:
+
+                final.append([word, word in self.safe_insult[word_type]])
+
+        return final
 
     def add_words(self, words, word_type):
 
