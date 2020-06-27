@@ -18,7 +18,7 @@ insult_gen = InsultGen()
 
 # Discord Token:
 
-TOKEN = "TOKEN_HERE"
+TOKEN = "NzI1NzU5NzgwMzQ1MzQ4MTY3.XvZHSg.nEjaiz5H9o8QypWhKmX7-ORzKYY"
 
 # Role we are looking for:
 
@@ -34,7 +34,17 @@ async def perm_check(ctx):
     :return:
     """
 
-    if ADMIN in ctx.message.author.roles or await bot.is_owner(ctx.message.author):
+    for role in ctx.author.roles:
+
+        # Checking permissions
+
+        if role.name == ADMIN:
+
+            # We have our correct permission,
+
+            return True
+
+    if await bot.is_owner(ctx.message.author):
 
         # We have the permissions, continue:
 
