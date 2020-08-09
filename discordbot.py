@@ -521,6 +521,8 @@ async def on_message(message):
 
         await insult(message, message.author)
 
+        return
+
     await bot.process_commands(message)
 
 
