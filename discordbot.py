@@ -2,7 +2,7 @@ from insult import InsultGen
 import discord
 from discord.ext import commands
 from math import ceil
-import re
+import traceback
 
 """
 This file will communicate with discord, 
@@ -11,7 +11,7 @@ and call the underlying insult logic as necessary.
 
 # DIS bot instance:
 
-bot = commands.Bot(command_prefix='>dis ')
+bot = commands.Bot(command_prefix='>dis ', description="Dynamic Insult System - DIS\n(Discord Edition!)")
 
 # Insult generator:
 
@@ -19,7 +19,7 @@ insult_gen = InsultGen()
 
 # Discord Token:
 
-TOKEN = "TOKE_HERE"
+TOKEN = "TOKEN HERE"
 
 # Role we are looking for:
 
@@ -27,7 +27,6 @@ ADMIN = 'Slick-Rick'
 
 
 async def perm_check(ctx):
-
     """
     Checks to see if the issuer has the ADMIN role defined above,
     of if the issuer is the owner of this bot.
@@ -40,13 +39,11 @@ async def perm_check(ctx):
         # Checking permissions
 
         if role.name == ADMIN:
-
             # We have our correct permission,
 
             return True
 
     if await bot.is_owner(ctx.message.author):
-
         # We have the permissions, continue:
 
         return True
@@ -57,7 +54,6 @@ async def perm_check(ctx):
 
 
 class WordlistCommands(commands.Cog, name='Wordlist Commands', ):
-
     """
     Cog containing all commands for wordlist editing
     """
@@ -67,8 +63,8 @@ class WordlistCommands(commands.Cog, name='Wordlist Commands', ):
         self.bot = bot_inst  # Discord Bot instance
 
     @commands.command(name='add', help="Adds one or more words to the wordlist, "
-                      "'/' separated without spaces. User must specify weather it is a "
-                      "flat word or a chain word. Supports DIS insult notation.", pass_contex=True)
+                                       "'/' separated without spaces. User must specify weather it is a "
+                                       "flat word or a chain word. Supports DIS insult notation.", pass_contex=True)
     @commands.check(perm_check)
     async def add(self, ctx, word_type: str, text: str):
 
@@ -83,7 +79,6 @@ class WordlistCommands(commands.Cog, name='Wordlist Commands', ):
         # Checking arguments:
 
         if word_type not in ['chain', 'flat']:
-
             await ctx.send("Invalid word type used! Must be 'chain' or 'flat'.")
 
             return
@@ -102,9 +97,9 @@ class WordlistCommands(commands.Cog, name='Wordlist Commands', ):
             await ctx.send("  > {}".format(i[0]))
 
     @commands.command(pass_context=True, name='remove', help="Removes one or more words to the wordlist, "
-                      "'/' separated without spaces. "
-                      "User must specify weather it is a flat word or a chain word. "
-                      "Supports DIS insult notation.")
+                                                             "'/' separated without spaces. "
+                                                             "User must specify weather it is a flat word or a chain word. "
+                                                             "Supports DIS insult notation.")
     @commands.check(perm_check)
     async def remove(self, ctx, word_type: str, text: str):
 
@@ -120,7 +115,6 @@ class WordlistCommands(commands.Cog, name='Wordlist Commands', ):
         # Checking arguments:
 
         if word_type not in ['chain', 'flat']:
-
             await ctx.send("Invalid word type used! Must be 'chain' or 'flat'.")
 
             return
@@ -195,7 +189,6 @@ class WordlistCommands(commands.Cog, name='Wordlist Commands', ):
                 "\nPattern: {}\nTotal Occurrences: {}\n".format(text, '{}')
 
         for thing in ['chain', 'flat']:
-
             result = insult_gen.find_word(text, thing)
 
             final = final + "\n  > Pattern occurs in [{}] wordlist {} times.".format(thing, len(result))
@@ -237,7 +230,6 @@ class WordlistCommands(commands.Cog, name='Wordlist Commands', ):
             page = 1
 
         if wordlist not in ['chain', 'flat']:
-
             await ctx.send("Invalid word type used! Must be 'chain' or 'flat'.")
 
             return
@@ -273,7 +265,6 @@ class WordlistCommands(commands.Cog, name='Wordlist Commands', ):
             wordlist, page, ceil(len(words_full) / 10))
 
         for num, word in enumerate(words):
-
             # Add word to final string
 
             print(word)
@@ -301,7 +292,6 @@ class WordlistCommands(commands.Cog, name='Wordlist Commands', ):
 
 
 class VulgarCommands(commands.Cog, name='Vulgar Commands'):
-
     """
     Cog that controls weather DIS should use vulgarity
     """
@@ -366,7 +356,6 @@ class VulgarCommands(commands.Cog, name='Vulgar Commands'):
 
 
 class NotationCommands(commands.Cog, name='Notation Commands'):
-
     """
     A cog that supplied tools for seeing how DIS will interpret your notation
     """
@@ -441,12 +430,11 @@ end||||||||||||||||||end
 
             # Add the text to the final string:
 
-            final = final + '\n[{}]:'.format(num+1) + val[0]
+            final = final + '\n[{}]:'.format(num + 1) + val[0]
 
             # Check if we are done:
 
             if num == 9:
-
                 break
 
         # Sending final string:
@@ -456,13 +444,11 @@ end||||||||||||||||||end
 
 @bot.event
 async def on_ready():
-
     print("DIS Has connected to discord!")
 
 
 @bot.event
 async def on_command_error(ctx, error):
-
     """
     Handles a command error
     :param ctx: Given context
@@ -483,7 +469,6 @@ async def on_command_error(ctx, error):
         await ctx.send("You supplied a bad argument.")
 
         if error.__str__() in ['Member "@​everyone" not found', 'Member "@​here" not found']:
-
             await ctx.send("Don't @ mention everyone or here, as that is very annoying.")
 
         await ctx.send("Try '>dis help [command]' to get info on the required arguments.")
@@ -510,13 +495,37 @@ If you can even read this, know that everyone is not amused, and your reputation
 I would recommend acquiring a monkey, or a chimp, as the random gibberish that gets generated
 from it banging on the keyboard is light years ahead of whats going on in your brain.""")
 
+    await ctx.send("Exception info:\nException: \n{}\nFull Traceback: \n{}".format(error, traceback.format_exc()))
+
     await ctx.send("For that, you truly deserve an insult:")
     await insult(ctx, ctx.message.author)
+
+@bot.event
+async def on_message(message):
+
+    """
+    Check if a message contains a mention.
+
+    :param message: Message provided.
+    """
+
+    if message.author == bot.user:
+
+        # Message from us, irrelevant
+
+        return
+
+    if bot.user in message.mentions:
+
+        # Insult whoever made the message:
+
+        await insult(message, message.author)
+
+    await bot.process_commands(message)
 
 
 @bot.command(name='insult', help='Insults a particular user.')
 async def insult(ctx, user: discord.Member, chain=3):
-
     """
     DIS a user. User must @mention a user, and can optionally supply chains
     :param ctx: Context given
@@ -537,23 +546,41 @@ async def insult(ctx, user: discord.Member, chain=3):
 
         name = user.mention
 
-    text = insult_gen.gen_insult(chain, start=name + ' is a', vulgar=bot.get_cog('Vulgar Commands').vulgar)
+    text = insult_gen.gen_insult(chain, start=name + ' is a', vulgar=bot.get_cog('Vulgar Commands').vulgar, limit=2000)
 
     if not text:
-
         # Wordlist is empty:
 
-        await ctx.send("Word list is empty, unable to generate insult!")
+        await ctx.channel.send("Word list is empty, unable to generate insult!")
 
         return
 
-    await ctx.send(text)
+    await ctx.channel.send(text)
+
+
+@bot.command(name='info', help='Shows general info on DIS')
+async def info(ctx):
+    """
+    Shows general info on DIS
+    :param ctx: Context given
+    :return:
+    """
+
+    start = "--== DIS Information: ==--\n"
+
+    # Generating insult logic info:
+
+    final = "\n[Insult Logic:]\n  > Version: {}\n  " \
+            "> Flat Words: {}\n  > Chain Words: {}".format(insult_gen.ver,
+                                                           insult_gen.get_word_length()[0],
+                                                           insult_gen.get_word_length()[1])
+
+    await ctx.send('```' + start + final + '```')
 
 
 @bot.command(name='raise', hidden=True)
 @commands.check(perm_check)
 async def exc_raise(ctx):
-
     """
     Raises an exception.
     :param ctx: Context provided.

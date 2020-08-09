@@ -50,6 +50,7 @@ class InsultGen:
         self.safe_insult = {'flat': [], 'chain': []}  # Dictionary for non-vulgar insults
         self.config = config  # Path to default insult file
         self.start = start  # Default phrase to start the insult.
+        self.ver = '1.1.0'  # Version of insult logic
 
         # Parsing over insult file:
 
@@ -59,7 +60,6 @@ class InsultGen:
 
         """
         Cleared the internal collection of inputs
-        :return:
         """
 
         self.insults = {'flat': [], 'chain': []}
@@ -69,10 +69,10 @@ class InsultGen:
 
         """
         Parses a specified insult configuration file for insults.
-        We call the InsultParser to handel the reading and interpreting
+        We call the InsultParser to handle the reading and interpreting
         of DIS Insult Notation.
+
         :param path: Path to configuration file. If None, use default.
-        :return:
         """
 
         # Clearing internal values:
@@ -141,6 +141,16 @@ class InsultGen:
 
         return final
 
+    def get_word_length(self):
+
+        """
+        Returns the length of both wordlists.
+
+        :return: Length of flat, length of chain
+        """
+
+        return len(self.insults['flat']), len(self.insults['chain'])
+
     def add_words(self, words, word_type):
 
         """
@@ -148,7 +158,6 @@ class InsultGen:
         Sends the words through the DIS notation parser.
         :param words: Words to add, can be string or list.
         :param word_type: Type of words
-        :return:
         """
 
         out = {'chain': [], 'flat': []}
@@ -159,7 +168,7 @@ class InsultGen:
 
             words = [words]
 
-        # Working with a list, handel it as such:
+        # Working with a list, handle it as such:
 
         for word in words:
 
@@ -180,7 +189,6 @@ class InsultGen:
         Sends the words through the DIS notation parser.
         :param words: Words to add, can be string or list
         :param word_type: Type of words to add
-        :return:
         """
 
         out = {'chain': [], 'flat': []}
@@ -272,7 +280,7 @@ class InsultGen:
 
                 pass
 
-    def gen_insult(self, num, start=None, vulgar=False):
+    def gen_insult(self, num, start=None, vulgar=False, limit=None):
 
         """
         Generates an insult based on the internal collection.
@@ -302,7 +310,17 @@ class InsultGen:
 
             # Generate values and combine together into the final insult:
 
-            final = final + ' ' + random.choice(collec['chain']) + ' ' + random.choice(collec['flat'])
+            choice = ' ' + random.choice(collec['chain']) + ' ' + random.choice(collec['flat'])
+
+            if limit is not None and len(choice) + len(final) >= limit:
+
+                # Insult is too big! do not generate.
+
+                break
+
+            # Insult length is still valid, add it:
+
+            final = final + choice
 
         # Return the insult
 

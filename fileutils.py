@@ -38,7 +38,7 @@ These characters may be located anywhere in the text, and may be escaped by the 
 class InsultParser:
 
     """
-    THe aforementioned insult parser.
+    The aforementioned insult parser.
     You can see more information about it above.
     """
 
